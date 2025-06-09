@@ -1,20 +1,26 @@
-# Use a lightweight Node.js base image
+# Use official Node.js base image
 FROM node:20-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Copy package definition files first (for better caching)
+# Install required build tools (just in case native modules are used)
+RUN apk add --no-cache python3 make g++
+
+# Copy package definition files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --production
+# Install ALL dependencies (production-only caused your error)
+RUN npm install
 
-# Copy rest of the app source
+# Copy the full source code
 COPY . .
 
-# Expose the default port (change if necessary)
+# Optional: build step if needed (safe to include even if unused)
+RUN npm run build || echo "No build step defined"
+
+# Expose port used by the app
 EXPOSE 3000
 
-# Start the Comlink server
+# Start the service
 CMD ["npm", "start"]
